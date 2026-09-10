@@ -1,15 +1,19 @@
 # ── Core pipeline dependencies ────────────────────────────────────────────
-yfinance==0.2.54          # Primary price/volume + best-effort fundamentals source
-pandas==2.3.3             # Data wrangling for the screening pipeline
-requests==2.32.3           # HTTP client for the fallback scraper
-beautifulsoup4==4.12.3     # HTML parsing for the fallback scraper
-lxml==5.3.0                # Fast parser backend for BeautifulSoup
-tenacity==9.0.0            # Retry/backoff decorator for flaky network calls
-python-dotenv==1.0.1       # Local .env support (webhook URLs, etc.) - never commit the .env itself
+# Minimum versions, not exact pins — lets pip pick whatever build actually
+# has a ready-made package for your Python version, instead of stalling to
+# compile an old version from source (what happened with pandas==2.2.3 on
+# Python 3.14). Tested and confirmed working together as of this file.
+yfinance>=0.2.54
+pandas>=2.3.3
+requests>=2.32.3
+beautifulsoup4>=4.12.3
+lxml>=5.3.0
+tenacity>=9.0.0
+python-dotenv>=1.0.1
 
 # ── Dashboard ──────────────────────────────────────────────────────────────
-streamlit==1.40.0
+streamlit>=1.40.0
 
-# ── Dev / testing (safe to split into requirements-dev.txt later) ─────────
-pytest==8.3.3
-ruff==0.7.4                 # Linter + formatter (see .vscode/settings.json)
+# ── Dev / testing ────────────────────────────────────────────────────────
+pytest>=8.3.3
+ruff>=0.7.4
