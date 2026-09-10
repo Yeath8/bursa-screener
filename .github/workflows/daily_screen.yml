@@ -1,0 +1,44 @@
+name: Daily Bursa Screener
+
+on:
+  schedule:
+    # 09:30 UTC = 5:30 PM Malaysia time (UTC+8) — 30 min after market
+    # close, Monday-Friday only (Bursa doesn't trade weekends). Note:
+    # this doesn't know about Malaysian public holidays — on a holiday
+    # it'll just run against the last available trading data, which is
+    # harmless but worth knowing about.
+    - cron: '30 9 * * 1-5'
+  workflow_dispatch: {}  # lets you trigger a run manually from the Actions tab, any time
+
+permissions:
+  contents: write  # required so this workflow can commit results.json back to the repo
+
+jobs:
+  screen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'  # same version pinned in .devcontainer — avoids the
+                                   # Python-3.14-vs-old-packages problem we hit before
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Refresh ticker universe
+        run: python scripts/update_ticker_universe.py
+
+      - name: Run daily screening pipeline
+        run: python scripts/run_daily.py
+
+      - name: Commit and push results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/tickers_universe.csv data/results.json data/stage_a_shortlist.csv data/stage_b_results.csv
+          git diff --staged --quiet || git commit -m "Daily screen: $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
