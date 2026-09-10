@@ -69,12 +69,18 @@ DEFAULT_SAMPLE = [
 
 KLSE_QUOTE_URL = "https://www.klsescreener.com/v2/screener/quote_results"
 
-# Column order mirrors kokweikhong/klsescreener-scraper's quote.go parser —
-# do not reorder without re-checking the live table structure.
+# Column order confirmed against the LIVE site via --debug-columns on
+# 2026-09-10 (18 raw cells; last one is always empty and ignored). This
+# has 3 more fields than the Go reference implementation assumed — a
+# separate point-change column, a combined category string, and a
+# trailing stock-tags column — which shifted "dy"/"roe"/"ptbv" one
+# position later than originally mapped. Confirmed against known-good
+# values: Maybank ROE ~11.25% (not the DY figure at the old position)
+# and market cap ~RM126,520M (not the PTBV figure at the old position).
 KLSE_COLUMNS = [
-    "short_name", "code", "market_category", "price", "changes_pct",
-    "52w_range", "volume", "eps", "dps", "nta", "pe", "dy", "roe",
-    "ptbv", "market_cap_rm_millions",
+    "short_name", "code", "market_category", "price", "change_abs",
+    "changes_pct", "52w_range", "volume", "eps", "dps", "nta", "pe", "dy",
+    "roe", "ptbv", "market_cap_rm_millions", "tags",
 ]
 
 
@@ -122,6 +128,9 @@ def debug_print_raw_columns(codes: list[str]) -> None:
         print(f"  [{i}] {cell.get_text(strip=True)!r}")
     print(f"\nCurrent KLSE_COLUMNS assumes {len(KLSE_COLUMNS)} columns in this order:")
     print(" ", KLSE_COLUMNS)
+
+
+def fetch_klse_screener_quotes(codes: list[str]) -> dict[str, dict]:
     """
     POSTs to KLSE Screener's quote_results endpoint, filtered to the given
     bare stock codes (e.g. ['1155', '1295']), and parses the returned HTML

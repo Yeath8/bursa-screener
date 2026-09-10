@@ -1,0 +1,2 @@
+ticker,market_cap_rm,market_cap_source,passed_market_cap,roe_pct,roe_source,passed_roe,latest_q_net_profit,prior_year_q_net_profit,earnings_growth_rm,passed_earnings_growth,qualified,notes,checked_on
+7113.KL,6133851648,yfinance,True,3.79,yfinance,False,80989000.0,nan,nan,False,False,,2026-09-10T18:37:01+00:00
