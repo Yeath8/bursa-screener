@@ -1,0 +1,46 @@
+# ── Python ─────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+build/
+dist/
+
+# ── Virtual environments ────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── Testing / linting / type-checking caches ────────────────────────────────
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# ── Environment secrets — NEVER commit these ────────────────────────────────
+.env
+.env.*
+streamlit_app/.streamlit/secrets.toml
+
+# ── OS junk ──────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Project-specific: local run artifacts ───────────────────────────────────
+# Keep the folder structure (see data/run_logs/.gitkeep) but don't track
+# every individual run's raw log — these are transient, not the durable
+# results/cache files.
+data/run_logs/*.log
+data/run_logs/*.txt
+!data/run_logs/.gitkeep
+
+# Local scratch/debug outputs — anything you dump here while iterating
+# in VS Code that isn't meant to be a tracked deliverable.
+scratch/
+*.local.csv
+
+# NOTE: data/tickers_universe.csv, data/fundamentals_cache.sqlite, and
+# data/results.json are INTENTIONALLY NOT ignored — the whole pipeline
+# design depends on GitHub Actions committing these back to the repo.
