@@ -96,7 +96,32 @@ def _bare_code(ticker: str) -> str:
     return ticker.split(".")[0]
 
 
-def fetch_klse_screener_quotes(codes: list[str]) -> dict[str, dict]:
+def debug_print_raw_columns(codes: list[str]) -> None:
+    """Prints every raw cell in the first matching row, indexed, so we can
+    verify (or fix) KLSE_COLUMNS against what the live site actually returns."""
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+        ),
+    }
+    payload = {"getquote": "1", "stock_tags": ",".join(codes)}
+    resp = requests.post(KLSE_QUOTE_URL, data=payload, headers=headers, timeout=20)
+    resp.raise_for_status()
+    soup = BeautifulSoup(resp.text, "html.parser")
+    rows = soup.select("tbody tr.list")
+
+    if not rows:
+        print("No rows found at all — the request itself may be failing silently.")
+        return
+
+    print(f"Found {len(rows)} row(s). Raw cells for the first row:\n")
+    cells = rows[0].find_all("td")
+    for i, cell in enumerate(cells):
+        print(f"  [{i}] {cell.get_text(strip=True)!r}")
+    print(f"\nCurrent KLSE_COLUMNS assumes {len(KLSE_COLUMNS)} columns in this order:")
+    print(" ", KLSE_COLUMNS)
     """
     POSTs to KLSE Screener's quote_results endpoint, filtered to the given
     bare stock codes (e.g. ['1155', '1295']), and parses the returned HTML
@@ -303,11 +328,23 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Comma-separated list of tickers to check, e.g. 1155.KL,1295.KL. Defaults to a built-in mixed sample.",
     )
+    parser.add_argument(
+        "--debug-columns",
+        action="store_true",
+        help="Print the raw KLSE Screener table cells for one ticker instead of running the full comparison — use this to fix column mapping if results look wrong.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
+
+    if args.debug_columns:
+        tickers = (
+            [t.strip().upper() for t in args.tickers.split(",")] if args.tickers else DEFAULT_SAMPLE
+        )
+        debug_print_raw_columns([_bare_code(t) for t in tickers[:1]])
+        return 0
     tickers = (
         [t.strip().upper() for t in args.tickers.split(",")] if args.tickers else DEFAULT_SAMPLE
     )
