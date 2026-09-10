@@ -29,6 +29,7 @@ import argparse
 import csv
 import logging
 import sys
+import time
 from dataclasses import dataclass, fields
 from datetime import datetime, timezone
 from pathlib import Path
@@ -36,6 +37,13 @@ from pathlib import Path
 import requests
 import yfinance as yf
 from bs4 import BeautifulSoup
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_message
+
+# Cloud IPs (like Codespaces') get rate-limited by Yahoo faster than a
+# residential IP would — confirmed in testing (real "Too Many Requests"
+# errors, not a one-off). Space requests out and retry with backoff
+# instead of hammering the endpoint.
+YFINANCE_DELAY_SECONDS = 3
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_FILE = REPO_ROOT / "data" / "run_logs" / "data_quality_spike_results.csv"
@@ -160,8 +168,33 @@ def parse_klse_market_cap_rm(raw: str) -> float | None:
         return None
 
 
+@retry(
+    stop=stop_after_attempt(4),
+    wait=wait_exponential(multiplier=3, min=3, max=30),
+    retry=retry_if_exception_message(match=r".*(Too Many Requests|429|rate limit).*"),
+    reraise=True,
+)
+def _get_info(t: "yf.Ticker") -> dict:
+    return t.info
+
+
+@retry(
+    stop=stop_after_attempt(4),
+    wait=wait_exponential(multiplier=3, min=3, max=30),
+    retry=retry_if_exception_message(match=r".*(Too Many Requests|429|rate limit).*"),
+    reraise=True,
+)
+def _get_quarterly_income(t: "yf.Ticker"):
+    return t.quarterly_income_stmt
+
+
 def fetch_yfinance_fundamentals(ticker: str) -> dict:
-    """Best-effort pull of ROE, market cap, and quarterly net profit via yfinance."""
+    """
+    Best-effort pull of ROE, market cap, and quarterly net profit via yfinance.
+    Retries with exponential backoff specifically on rate-limit errors —
+    confirmed necessary: cloud IPs (Codespaces included) get throttled by
+    Yahoo faster than this script originally accounted for.
+    """
     t = yf.Ticker(ticker)
     out = {
         "roe_pct": None,
@@ -172,15 +205,17 @@ def fetch_yfinance_fundamentals(ticker: str) -> dict:
     }
 
     try:
-        info = t.info
+        info = _get_info(t)
         roe = info.get("returnOnEquity")
         out["roe_pct"] = round(roe * 100, 2) if roe is not None else None
         out["market_cap_rm"] = info.get("marketCap")
-    except Exception as exc:  # yfinance .info is notoriously flaky
-        out["notes"] += f"info fetch failed: {exc}; "
+    except Exception as exc:
+        out["notes"] += f"info fetch failed after retries: {exc}; "
+
+    time.sleep(YFINANCE_DELAY_SECONDS)
 
     try:
-        q_income = t.quarterly_income_stmt
+        q_income = _get_quarterly_income(t)
         if q_income is not None and "Net Income" in q_income.index and q_income.shape[1] > 0:
             out["latest_q_net_profit"] = float(q_income.loc["Net Income"].iloc[0])
             if q_income.shape[1] > 3:
@@ -190,7 +225,7 @@ def fetch_yfinance_fundamentals(ticker: str) -> dict:
         else:
             out["notes"] += "no quarterly Net Income row returned; "
     except Exception as exc:
-        out["notes"] += f"quarterly income fetch failed: {exc}; "
+        out["notes"] += f"quarterly income fetch failed after retries: {exc}; "
 
     return out
 
@@ -201,10 +236,12 @@ def run_spike(tickers: list[str]) -> list[ComparisonRow]:
     klse_data = fetch_klse_screener_quotes(codes)
 
     rows: list[ComparisonRow] = []
-    for ticker in tickers:
+    for i, ticker in enumerate(tickers):
         code = _bare_code(ticker)
         logger.info("Fetching yfinance data for %s...", ticker)
         yf_data = fetch_yfinance_fundamentals(ticker)
+        if i < len(tickers) - 1:
+            time.sleep(YFINANCE_DELAY_SECONDS)
         klse_record = klse_data.get(code)
 
         row = ComparisonRow(
