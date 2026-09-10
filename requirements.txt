@@ -1,9 +1,10 @@
 # ── Core pipeline dependencies ────────────────────────────────────────────
-# Minimum versions, not exact pins — lets pip pick whatever build actually
-# has a ready-made package for your Python version, instead of stalling to
-# compile an old version from source (what happened with pandas==2.2.3 on
-# Python 3.14). Tested and confirmed working together as of this file.
-yfinance>=0.2.54
+# yfinance must be >=1.7.0 — older 0.2.x versions fail silently against
+# Yahoo's current API (confirmed: .info returned None for every field
+# during testing). Combined with the devcontainer pinning Python to 3.12,
+# every package below has a stable, pre-built install — nothing here
+# should need to compile from source or hit native-library crashes again.
+yfinance>=1.7.0
 pandas>=2.3.3
 requests>=2.32.3
 beautifulsoup4>=4.12.3
