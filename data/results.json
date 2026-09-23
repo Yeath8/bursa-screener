@@ -1,24 +1,7 @@
 {
-  "generated_at": "2026-09-22T14:07:32+00:00",
+  "generated_at": "2026-09-23T14:19:32+00:00",
   "universe_size": 32,
-  "stage_a_shortlist_size": 1,
-  "qualified_count": 1,
-  "qualified_stocks": [
-    {
-      "ticker": "1961.KL",
-      "today_close": 4.8,
-      "momentum_pct": 1.69,
-      "volume_ratio": 2.51,
-      "market_cap_rm": 30168954880,
-      "roe_pct": 13.02,
-      "earnings_growth_rm": 131400000.0,
-      "reasons": [
-        "Big, established company",
-        "More people are buying than usual",
-        "Price has been rising",
-        "Company is profitable and growing",
-        "Good return on shareholders' money"
-      ]
-    }
-  ]
+  "stage_a_shortlist_size": 2,
+  "qualified_count": 0,
+  "qualified_stocks": []
 }
