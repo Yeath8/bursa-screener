@@ -1,7 +1,24 @@
 {
-  "generated_at": "2026-09-28T17:46:29+00:00",
+  "generated_at": "2026-09-29T16:03:58+00:00",
   "universe_size": 32,
-  "stage_a_shortlist_size": 0,
-  "qualified_count": 0,
-  "qualified_stocks": []
+  "stage_a_shortlist_size": 1,
+  "qualified_count": 1,
+  "qualified_stocks": [
+    {
+      "ticker": "5819.KL",
+      "today_close": 23.36,
+      "momentum_pct": 1.13,
+      "volume_ratio": 2.12,
+      "market_cap_rm": 47734337536,
+      "roe_pct": 11.18,
+      "earnings_growth_rm": 151750000.0,
+      "reasons": [
+        "Big, established company",
+        "More people are buying than usual",
+        "Price has been rising",
+        "Company is profitable and growing",
+        "Good return on shareholders' money"
+      ]
+    }
+  ]
 }
