@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-09-29T16:03:58+00:00",
+  "generated_at": "2026-09-30T16:02:25+00:00",
   "universe_size": 32,
-  "stage_a_shortlist_size": 1,
+  "stage_a_shortlist_size": 2,
   "qualified_count": 1,
   "qualified_stocks": [
     {
       "ticker": "5819.KL",
-      "today_close": 23.36,
-      "momentum_pct": 1.13,
-      "volume_ratio": 2.12,
-      "market_cap_rm": 47734337536,
+      "today_close": 23.28,
+      "momentum_pct": 3.28,
+      "volume_ratio": 3.38,
+      "market_cap_rm": 47447273472,
       "roe_pct": 11.18,
       "earnings_growth_rm": 151750000.0,
       "reasons": [
